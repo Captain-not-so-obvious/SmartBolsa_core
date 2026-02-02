@@ -1,0 +1,110 @@
+🗺️ Fase 1: Fundação e Infraestrutura (A Base)
+Objetivo: Ter o Backend e Frontend rodando, conectados ao Banco e com Login funcionando.
+
+Configuração do Supabase:
+
+Criar projeto (Free Tier). ✅
+
+Habilitar Auth (Google Provider).✅
+
+Pegar credenciais (DATABASE_URL, SUPABASE_URL, ANON_KEY, JWT_SECRET). ✅
+
+Setup do Backend (Django):
+
+Iniciar projeto Django.
+
+Configurar django-ninja e conexão PostgreSQL (psycopg).
+
+Implementar a classe SupabaseAuth (que discutimos antes).
+
+Criar App Core (para gestão de User Profile).
+
+Setup do Frontend (React):
+
+Iniciar Vite + React + Tailwind + ShadcnUI.
+
+Configurar rotas (react-router-dom).
+
+Integrar SDK do Supabase (Login com Google).
+
+O "Hello World" Real:
+
+Frontend faz login -> Pega Token -> Chama API /api/me -> Backend valida token -> Retorna "Olá, Fillipe".
+
+💰 Fase 2: O Gestor Financeiro (Plano Free)
+Objetivo: O usuário consegue lançar gastos, receitas e ver o saldo.
+
+Modelagem de Dados (App Finance):
+
+Models: Account (Carteira, Banco), Category (Comida, Lazer), Transaction (Entrada/Saída).
+
+API CRUD (Django Ninja):
+
+Endpoints para criar/editar/listar transações.
+
+Endpoint de "Resumo do Mês" (Soma de entradas - saídas).
+
+Frontend Operacional:
+
+Formulário de lançamento (com Datepicker e Select de categorias).
+
+Lista de extrato (tabela simples).
+
+Dashboard Home: Card de "Saldo Atual" e "Gasto no Mês".
+
+📈 Fase 3: O Motor de Investimentos (Backend do Plano Pro)
+Objetivo: O sistema sabe o que é uma Ação e consegue atualizar preços sozinho.
+
+Modelagem Complexa (App Investments):
+
+Models: Asset (Ativo), Portfolio (Carteira), Operation (Compra/Venda), Position (Snapshot).
+
+Integração de Dados (O "Robô"):
+
+Configurar Redis (localmente ou via Docker).
+
+Configurar Celery.
+
+Criar Task assíncrona: fetch_asset_prices.
+
+Script usando yfinance para buscar cotação de PETR4.SA, AAPL, etc.
+
+Lógica de Negócios:
+
+Algoritmo que recalcula o preço médio e posição atual a cada nova compra/venda.
+
+📊 Fase 4: O Painel do Investidor (Frontend do Plano Pro)
+Objetivo: Visualização de riqueza e ferramentas avançadas.
+
+Dashboard de Investimentos:
+
+Gráfico de Pizza (Alocação por Categoria).
+
+Gráfico de Linha (Evolução do Patrimônio - Histórico).
+
+Funcionalidades Pro:
+
+Tela de Rebalanceamento: Mostra "Ideal vs. Atual" e sugere o que comprar/vender.
+
+Tela de Risco: Mostra o "Termômetro de Risco" da carteira.
+
+Gatekeeper:
+
+Bloquear essas telas no Front se o usuário for "Free" (apenas um upsell visual).
+
+🚀 Fase 5: Polimento e Deploy (O Go-Live)
+Objetivo: Colocar no ar para uso real.
+
+Mobile (Flutter):
+
+Fazer uma versão simplificada: Login + Ver Saldo + Lançar Gasto Rápido.
+
+Deploy Backend:
+
+Subir no Railway ou Oracle Cloud.
+
+Configurar variáveis de ambiente de produção.
+
+Deploy Frontend:
+
+Subir no Vercel (Gratuito e excelente para React).
