@@ -9,11 +9,11 @@ Habilitar Auth (Google Provider).✅
 
 Pegar credenciais (DATABASE_URL, SUPABASE_URL, ANON_KEY, JWT_SECRET). ✅
 
-Setup do Backend (Django):
+Setup do Backend (Django): ✅
 
-Iniciar projeto Django.
+Iniciar projeto Django. ✅
 
-Configurar django-ninja e conexão PostgreSQL (psycopg).
+Configurar django-ninja e conexão PostgreSQL (psycopg). 
 
 Implementar a classe SupabaseAuth (que discutimos antes).
 
