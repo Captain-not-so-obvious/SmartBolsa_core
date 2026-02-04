@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -62,7 +64,83 @@
   * {
     @apply border-border;
   }
+  
+  /* AQUI ESTÁ A MÁGICA UNIFICADA */
   body {
-    @apply bg-background text-foreground;
+    /* Fundo Escuro + Texto Menta + Fonte Inter */
+    @apply bg-brand-dark text-brand-mint font-sans; 
+  }
+
+  /* Títulos (Extra Bold + Areia) */
+  h1 {
+    @apply font-extrabold text-brand-sand;
+  }
+  
+  /* Subtítulos (Medium + Teal) */
+  h2, h3 {
+    @apply font-medium text-brand-teal;
+  }
+  
+  /* Texto padrão (Regular) */
+  p, span, div {
+    @apply font-normal;
+  }
+}
+
+@layer components {
+  /* O Efeito de Vidro Mágico */
+  .glass {
+    /* 1. Fundo: Usamos sua cor 'Deep' mas com 40% de opacidade */
+    @apply bg-brand-deep/40; 
+    
+    /* 2. O Blur: É o que faz o fundo ficar embaçado */
+    @apply backdrop-blur-md; 
+    
+    /* 3. Borda Sutil: Para destacar o vidro do fundo */
+    @apply border border-brand-teal/20;
+    
+    /* 4. Sombra: Para dar profundidade 3D */
+    @apply shadow-xl;
+  }
+  
+  /* Uma variação mais escura para o menu lateral depois */
+  .glass-dark {
+    @apply bg-brand-dark/80 backdrop-blur-lg border-r border-brand-teal/10;
+  }
+
+  .bg-ambient {
+    @apply relative min-h-screen bg-brand-dark overflow-hidden;
+  }
+
+  /* Luz 1 (Teal) - Injetada via CSS */
+  .bg-ambient::before {
+    content: "";
+    position: absolute;
+    top: -10%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    border-radius: 100%;
+    background-color: theme('colors.brand.teal');
+    opacity: 0.2;
+    filter: blur(100px);
+    pointer-events: none; /* Garante que o clique passa através da luz */
+    z-index: 0;
+  }
+
+  /* Luz 2 (Orange) - Injetada via CSS */
+  .bg-ambient::after {
+    content: "";
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    border-radius: 100%;
+    background-color: theme('colors.brand.orange');
+    opacity: 0.1;
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
   }
 }
