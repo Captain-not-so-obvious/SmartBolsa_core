@@ -3,7 +3,7 @@ from .models import Carteira, Categoria, Transacao
 
 @admin.register(Carteira)
 class CarteiraAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'user', 'criado_em')
+    list_display = ('nome', 'user', 'saldo_inicial')
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
@@ -12,5 +12,7 @@ class CategoriaAdmin(admin.ModelAdmin):
 
 @admin.register(Transacao)
 class TransacaoAdmin(admin.ModelAdmin):
-    list_display = ('descricao', 'valor', 'data', 'tipo', 'categoria', 'carteira')
-    list_filter = ('data', 'tipo', 'carteira')
+    # Removida a 'descricao', adicionada 'observacao'
+    list_display = ('categoria', 'valor', 'data', 'carteira', 'tipo', 'observacao')
+    list_filter = ('data', 'tipo', 'carteira', 'categoria')
+    search_fields = ('observacao', 'categoria__nome')
