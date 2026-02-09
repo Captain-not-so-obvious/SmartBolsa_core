@@ -1,97 +1,205 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../services/supabase'
-import api from '../services/api'
-import { Button } from '@/components/ui/button'
+import { supabase } from '@/services/supabase'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { Wallet, ArrowUpCircle, ArrowDownCircle, Loader2 } from 'lucide-react'
 
 export default function Dashboard() {
-    const navigate = useNavigate()
-    const [user, setUser] = useState(null)
-    // CORREÇÃO: O nome da função de set deve ser igual ao usado no código
-    const [djangoMessage, setDjangoMessage] = useState("Carregando dados...")
+  const [user, setUser] = useState(null)
+  const [resumo, setResumo] = useState(null) // Estado para Cards
+  const [graficos, setGraficos] = useState(null) // Estado para Gráficos
+  const [loading, setLoading] = useState(true) // Estado de Carregamento
 
-    useEffect(() => {
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
+  // Formatador de Dinheiro (R$ 1.000,00)
+  const formatarMoeda = (valor) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(valor)
+  }
 
-            if (!session) {
-                navigate('/') 
-                return
-            }
+  useEffect(() => {
+    const carregarDados = async () => {
+      try {
+        // 1. Pega usuário logado
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
 
-            setUser(session.user)
-            callBackend(session.access_token)
-        }
+        // 2. Busca Resumo (Saldo, Receitas, Despesas)
+        // Nota: No futuro usaremos token JWT, por enquanto o backend pega o primeiro user
+        const resResumo = await fetch('http://127.0.0.1:8000/api/dashboard/resumo')
+        const dadosResumo = await resResumo.json()
+        setResumo(dadosResumo)
 
-        checkSession()
-    }, [])
+        // 3. Busca Dados dos Gráficos
+        const resGraficos = await fetch('http://127.0.0.1:8000/api/dashboard/graficos')
+        const dadosGraficos = await resGraficos.json()
+        setGraficos(dadosGraficos)
 
-    const callBackend = async (token) => {
-        try {
-            const response = await api.get('/me', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-            setDjangoMessage(JSON.stringify(response.data, null, 2))
-        } catch (error) {
-            console.error("Erro ao conectar com o Django:", error)
-            setDjangoMessage("Erro ao conectar com o backend: " + error.message)
-        }
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut()
-        navigate('/')
-    }
+    carregarDados()
+  }, [])
 
-    return (
-        // 1. APLICADO: bg-ambient traz o fundo escuro e as luzes teal/orange
-        <div className='bg-ambient min-h-screen p-8'>
-            
-            {/* 2. APLICADO: relative z-10 garante que o conteúdo fique ACIMA das luzes de fundo */}
-            <div className='max-w-4xl mx-auto space-y-6 relative z-10'>
-                
-                {/* Header com borda mais sutil */}
-                <div className='flex justify-between items-center border-b border-brand-teal/30 pb-6'>
-                    <h1 className='text-3xl font-extrabold text-brand-sand drop-shadow-sm'>
-                        Painel SmartBolsa
-                    </h1>
-                    <Button 
-                        className="bg-brand-wine hover:bg-brand-ruby text-white font-bold shadow-lg transition-all" 
-                        onClick={handleLogout}
-                    >
-                        Sair
-                    </Button>
-                </div>
-
-                {/* Card do Usuário com efeito GLASS */}
-                <Card className="glass border-brand-teal/20 text-brand-mint">
-                    <CardHeader>
-                        <CardTitle className="text-brand-sand text-xl"> 
-                            Dados do Usuário
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                        <p><span className='font-bold text-white'>Email:</span> {user?.email}</p>
-                        <p><span className='font-bold text-white'>ID:</span> {user?.id}</p>
-                    </CardContent>
-                </Card>
-
-                {/* Card do Backend com efeito GLASS */}
-                <Card className="glass border-brand-teal/20">
-                    <CardHeader>
-                        <CardTitle className="text-brand-teal font-bold">Resposta do Backend</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {/* Box de código com fundo escuro translúcido para leitura */}
-                        <pre className='bg-brand-dark/60 backdrop-blur-sm p-4 rounded-lg text-brand-mint font-mono text-sm overflow-auto border border-brand-teal/10 shadow-inner'>
-                            {djangoMessage}
-                        </pre>
-                    </CardContent>
-                </Card>
-            </div>
+  // Componente Tooltip Customizado
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-brand-dark/95 border border-brand-teal/20 p-3 rounded-lg shadow-xl backdrop-blur-md">
+          <p className="font-bold text-brand-sand mb-1">{payload[0].name}</p>
+          <p className="text-brand-mint text-sm font-mono">
+            {formatarMoeda(payload[0].value)}
+          </p>
         </div>
+      )
+    }
+    return null
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-10 h-10 text-brand-teal animate-spin" />
+      </div>
     )
+  }
+
+  return (
+    <div className='space-y-6 animate-in fade-in duration-700'>
+      
+      {/* 1. CABEÇALHO */}
+      <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
+        <div>
+          <h1 className='text-3xl font-extrabold text-brand-sand'>
+            Visão Geral
+          </h1>
+          <p className='text-brand-mint/60'>
+            Olá, {user?.email?.split('@')[0]}
+          </p>
+        </div>
+      </div>
+
+      {/* 2. CARDS DE RESUMO (DADOS REAIS) */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+        {/* Card Saldo */}
+        <Card className="glass border-brand-teal/30">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-brand-mint">Saldo Atual</CardTitle>
+            <Wallet className="h-4 w-4 text-brand-teal" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-brand-sand">
+              {formatarMoeda(resumo?.saldo_total || 0)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card Receitas */}
+        <Card className="glass border-brand-teal/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-brand-mint">Receitas (Mês)</CardTitle>
+            <ArrowUpCircle className="h-4 w-4 text-brand-mint" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-brand-mint">
+               {formatarMoeda(resumo?.receitas_mes || 0)}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card Despesas */}
+        <Card className="glass border-brand-wine/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-brand-mint">Despesas (Mês)</CardTitle>
+            <ArrowDownCircle className="h-4 w-4 text-brand-ruby" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-brand-ruby">
+               - {formatarMoeda(resumo?.despesas_mes || 0)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 3. GRÁFICOS (DADOS REAIS) */}
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+        
+        {/* Gráfico de Receitas */}
+        <Card className="glass border-brand-teal/20">
+          <CardHeader>
+            <CardTitle className="text-brand-teal">Origem das Receitas</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            {graficos?.receitas_por_categoria?.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={graficos.receitas_por_categoria}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {graficos.receitas_por_categoria.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: '#E9D8A6' }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-brand-mint/40">
+                Sem receitas este mês
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Gráfico de Despesas */}
+        <Card className="glass border-brand-ruby/20">
+          <CardHeader>
+            <CardTitle className="text-brand-ruby">Categorias de Despesas</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+             {graficos?.despesas_por_categoria?.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={graficos.despesas_por_categoria}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {graficos.despesas_por_categoria.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: '#E9D8A6' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+             ) : (
+                <div className="h-full flex items-center justify-center text-brand-mint/40">
+                  Sem despesas este mês
+                </div>
+             )}
+          </CardContent>
+        </Card>
+
+      </div>
+    </div>
+  )
 }
