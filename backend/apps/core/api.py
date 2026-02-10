@@ -2,10 +2,10 @@ from ninja import NinjaAPI, Schema
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 # IMPORTS IMPORTANTES QUE FALTAVAM
-from apps.financas.models import Carteira, Transacao
+from apps.financas.models import Carteira, Transacao, Categoria
 
 api = NinjaAPI(
     title="SmartBolsa API",
@@ -28,6 +28,29 @@ class GraficoItem(Schema):
 class DashboardGraficos(Schema):
     receitas_por_categoria: List[GraficoItem]
     despesas_por_categoria: List[GraficoItem]
+
+class TransacaoSchema(Schema):
+    id: int
+    descricao: str
+    valor: float
+    tipo: str
+    data: date
+    carteira_id: int
+    categoria_id: int
+    observacao: Optional[str] = None
+
+class NovaTransacaoSchema(Schema):
+    valor: float
+    data: date
+    tipo: str
+    carteira_id: int
+    categoria_id: int
+    observacao: Optional[str] = None
+    pago: bool = True
+
+class ItemSelecao(Schema):
+    id: int
+    nome: str
 
 # --- ENDPOINTS ---
 
@@ -93,3 +116,65 @@ def get_dashboard_graficos(request):
 @api.get("/hello")
 def hello(request):
     return {"message": "Estamos online e conectados!"}
+
+@api.get("/transacoes", response=List[TransacaoSchema])
+def listar_transacoes(request):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    qs = Transacao.objects.filter(user=user).select_related('categoria', 'carteira').order_by('-data', '-criado_em')
+
+    resultados = []
+    for t in qs:
+        resultados.append({
+            "id": t.id,
+            "descricao": t.categoria.nome,
+            "valor": t.valor,
+            "tipo": t.tipo,
+            "data": t.data,
+            "carteira_id": t.carteira.id,
+            "categoria_id": t.categoria.id,
+            "observacao": t.observacao
+        })
+    return resultados
+
+@api.post("/transacoes", response={201: TransacaoSchema})
+def criar_transacao(request, payload: NovaTransacaoSchema):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    carteira = get_object_or_404(Carteira, id=payload.carteira_id, user=user)
+    categoria = get_object_or_404(Categoria, id=payload.categoria_id, user=user)
+
+    nova = Transacao.objects.create(
+        user=user,
+        carteira=carteira,
+        categoria=categoria,
+        valor=payload.data,
+        tipo=payload.tipo,
+        pago=payload.pago,
+        observacao=payload.observacao
+    )
+
+    return 201, {
+        "id": nova.id,
+        "descricao": nova.categoria.nome,
+        "valor": nova.valor,
+        "tipo": nova.tipo,
+        "data": nova.data,
+        "carteira_id": nova.carteira.id,
+        "categoria_id": nova.categoria.id,
+        "observacao": nova.observacao
+    }
+
+@api.get("/combos/carteiras", response=List[ItemSelecao])
+def listar_carteiras_combo(request):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    return Carteira.objects.filter(user=user)
+
+@api.get("combos/categorias", response=List[ItemSelecao])
+def listar_categorias_combo(request):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    return Categoria.objects.filter(user=user)

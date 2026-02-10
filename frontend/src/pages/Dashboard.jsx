@@ -32,7 +32,8 @@ export default function Dashboard() {
         setResumo(dadosResumo)
 
         // 3. Busca Dados dos Gráficos
-        const resGraficos = await fetch('http://127.0.0.1:8000/api/dashboard/graficos')
+        const baseUrl = import.meta.env.VITE_API_URL
+        const resGraficos = await fetch(`${baseUrl}/dashboard/graficos`)
         const dadosGraficos = await resGraficos.json()
         setGraficos(dadosGraficos)
 

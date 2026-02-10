@@ -34,15 +34,15 @@ Frontend faz login -> Pega Token -> Chama API /api/me -> Backend valida token ->
 💰 Fase 2: O Gestor Financeiro (Plano Free)
 Objetivo: O usuário consegue lançar gastos, receitas e ver o saldo.
 
-Modelagem de Dados (App Finance):
+Modelagem de Dados (App Finance): ✅
 
-Models: Account (Carteira, Banco), Category (Comida, Lazer), Transaction (Entrada/Saída).
+Models: Account (Carteira, Banco), Category (Comida, Lazer), Transaction (Entrada/Saída). ✅
 
-API CRUD (Django Ninja):
+API CRUD (Django Ninja): 
 
 Endpoints para criar/editar/listar transações.
 
-Endpoint de "Resumo do Mês" (Soma de entradas - saídas).
+Endpoint de "Resumo do Mês" (Soma de entradas - saídas). ✅
 
 Frontend Operacional:
 
@@ -50,7 +50,7 @@ Formulário de lançamento (com Datepicker e Select de categorias).
 
 Lista de extrato (tabela simples).
 
-Dashboard Home: Card de "Saldo Atual" e "Gasto no Mês".
+Dashboard Home: Card de "Saldo Atual" e "Gasto no Mês". ✅
 
 📈 Fase 3: O Motor de Investimentos (Backend do Plano Pro)
 Objetivo: O sistema sabe o que é uma Ação e consegue atualizar preços sozinho.
