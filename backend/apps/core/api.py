@@ -179,3 +179,41 @@ def listar_categorias_combo(request):
     from django.contrib.auth.models import User
     user = request.user if request.user.is_authenticated else User.objects.first()
     return Categoria.objects.filter(user=user)
+
+@api.delete("/transacoes/{transacao_id}", response={204: None})
+def deletar_transacao(request, transacao_id: int):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    transacao = get_object_or_404(Transacao, id=transacao_id, user=user)
+
+    transacao.delete()
+
+    return 204, None
+
+@api.put("/transacoes/{transacao_id}", response=TransacaoSchema)
+def atualizar_transacao(request, transacao_id: int, payload: NovaTransacaoSchema):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    transacao = get_object_or_404(Transacao, id=transacao_id, user=user)
+    carteira = get_object_or_404(Carteira, id=payload.carteira_id, user=user)
+    categoria = get_object_or_404(Categoria, id=payload.categoria_id, user=user)
+
+    transacao.valor = payload.valor
+    transacao.data = payload.data
+    transacao.tipo = payload.tipo
+    transacao.observacao = payload.observacao
+    transacao.carteira = carteira
+    transacao.categoria = categoria
+    transacao.save()
+
+    return {
+        "id": transacao.id,
+        "descricao": transacao.categoria.nome,
+        "valor": transacao.valor,
+        "tipo": transacao.tipo,
+        "data": transacao.data,
+        "carteira_id": transacao.carteira.id,
+        "categoria_id": transacao.categoria.id,
+        "observacao": transacao.observacao
+    }

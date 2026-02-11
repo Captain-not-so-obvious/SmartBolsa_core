@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Plus, Search, Filter, ArrowUpCircle, ArrowDownCircle, Trash2, Trash } from 'lucide-react'
+import { Plus, Search, ArrowUpCircle, ArrowDownCircle, Trash2, Edit } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +10,7 @@ export default function Lancamentos() {
     const [loading, setLoading] = useState(true)
     const [busca, setBusca] = useState('')
     const [modalAberto, setModalAberto] = useState(false)
+    const [transacaoEditando, setTransacaoEditando] = useState(null)
 
     const formatarData = (dataString) => {
         const [ano, mes, dia] = dataString.split('-')
@@ -43,6 +44,25 @@ export default function Lancamentos() {
         (t.observacao && t.observacao.toLowerCase().includes(busca.toLowerCase()))
     )
 
+    const handleExcluir = async (id) => {
+      if (confirm("Tem certeza que deseja excluir esta transação?")) {
+        try {
+          const baseUrl = import.meta.env.VITE_API_URL
+          const res = await fetch(`${baseUrl}/transacoes/${id}`, {
+            method: 'DELETE'
+          })
+
+          if (res.ok) {
+            setTransacoes(transacoes.filter(t => t.id !== id))
+          } else {
+            alert("Erro ao excluir.")
+          }
+        } catch (error) {
+          console.error("Erro:", error)
+        }
+      }
+    }
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header */}
@@ -52,7 +72,10 @@ export default function Lancamentos() {
                     <p className="text-brand-mint/60">Informe suas Receitas e Despesas</p>
                 </div>
                 <Button
-                onClick={() => setModalAberto(true)}
+                onClick={() => {
+                  setTransacaoEditando(null)
+                  setModalAberto(true)
+                }}
                 className="bg-brand-teal hover:bg-brand-teal/80 text-white shadow-lg shadow-brand-teal/20">
                 <Plus size={20} className="mr-2" /> Novo Lançamento
                 </Button>
@@ -115,10 +138,32 @@ export default function Lancamentos() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-brand-mint/40 hover:text-brand-ruby transition-colors p-1 opacity-0 group-hover:opacity-100">
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+    {/* Container Flex para alinhar os dois botões juntos */}
+    <div className="flex items-center justify-end gap-2">
+        
+        {/* Botão Editar */}
+        <button 
+            onClick={() => {
+                setTransacaoEditando(item)
+                setModalAberto(true)
+            }}
+            className="text-brand-mint/40 hover:text-brand-teal transition-colors p-1 opacity-0 group-hover:opacity-100"
+            title="Editar"
+        >
+            <Edit size={16} />
+        </button>
+
+        {/* Botão Excluir */}
+        <button
+            onClick={() => handleExcluir(item.id)}
+            className="text-brand-mint/40 hover:text-brand-ruby transition-colors p-1 opacity-0 group-hover:opacity-100"
+            title="Excluir"
+        >
+            <Trash2 size={16} />
+        </button>
+
+    </div>
+</td>
                   </tr>
                 ))
               ) : (
@@ -138,6 +183,7 @@ export default function Lancamentos() {
             aoSalvar={() => {
                 carregarTransacoes()
             }}
+            transacaoParaEditar={transacaoEditando}
         />
     )}
     </div>

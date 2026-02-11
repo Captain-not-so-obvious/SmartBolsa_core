@@ -38,17 +38,17 @@ Modelagem de Dados (App Finance): ✅
 
 Models: Account (Carteira, Banco), Category (Comida, Lazer), Transaction (Entrada/Saída). ✅
 
-API CRUD (Django Ninja): 
+API CRUD (Django Ninja): ✅
 
-Endpoints para criar/editar/listar transações.
+Endpoints para criar/editar/listar transações. ✅
 
 Endpoint de "Resumo do Mês" (Soma de entradas - saídas). ✅
 
 Frontend Operacional:
 
-Formulário de lançamento (com Datepicker e Select de categorias).
+Formulário de lançamento (com Datepicker e Select de categorias). ✅
 
-Lista de extrato (tabela simples).
+Lista de extrato (tabela simples). ✅
 
 Dashboard Home: Card de "Saldo Atual" e "Gasto no Mês". ✅
 

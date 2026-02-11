@@ -3,7 +3,7 @@ import { X, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
+export default function ModalNovaTransacao({ aoFechar, aoSalvar, transacaoParaEditar }) {
     const [loading, setLoading] = useState(false)
     const [carteiras, setCarteiras] = useState([])
     const [categorias, setCategorias] = useState([])
@@ -18,6 +18,19 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
         observacao: ''
     })
 
+    useEffect(() => {
+        if (transacaoParaEditar) {
+            setForm({
+                valor: transacaoParaEditar.valor,
+                data: transacaoParaEditar.data,
+                tipo: transacaoParaEditar.tipo,
+                carteira_id: transacaoParaEditar.carteira_id,
+                categoria_id: transacaoParaEditar.categoria_id,
+                observacao: transacaoParaEditar.observacao || ''
+            })
+        }
+    }, [transacaoParaEditar])
+    
     // Carrega as listas para o Select
     useEffect(() => {
         async function carregarDados() {
@@ -44,8 +57,14 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
 
         try {
             const baseUrl = import.meta.env.VITE_API_URL
-            const res = await fetch(`${baseUrl}/transacoes`, {
-                method: 'POST',
+            const url = transacaoParaEditar
+                ? `${baseUrl}/transacoes/${transacaoParaEditar.id}`
+                : `${baseUrl}/transacoes`
+
+            const method = transacaoParaEditar?.id ? 'PUT' : 'POST'
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...form,
@@ -75,7 +94,9 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
                 
                 {/* Cabeçalho */}
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-brand-sand">Nova Transação</h2>
+                    <h2 className="text-xl font-bold text-brand-sand">
+                        {transacaoParaEditar ? 'Editar Transação' : 'Nova Transação'}
+                    </h2>
                     <button onClick={aoFechar} className="text-brand-mint/50 hover:text-brand-ruby">
                         <X size={24} />
                     </button>
@@ -162,7 +183,7 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
 
                     <Button type="submit" disabled={loading} className="w-full bg-brand-teal hover:bg-brand-teal/80 text-white font-bold mt-4">
                         {loading ? <Loader2 className="animate-spin mr-2"/> : <Save className="mr-2" size={18}/>}
-                        Salvar Lançamento
+                        {transacaoParaEditar ? 'Salvar Alterações' : 'Salvar Lançamento'}
                     </Button>
 
                 </form>
