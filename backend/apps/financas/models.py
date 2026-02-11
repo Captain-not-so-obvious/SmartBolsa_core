@@ -37,9 +37,6 @@ class Transacao(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transacoes')
     carteira = models.ForeignKey(Carteira, on_delete=models.CASCADE, related_name='transacoes')
-    
-    # MUDANÇA PRINCIPAL: Categoria agora é OBRIGATÓRIA e PROTEGIDA
-    # Removemos o campo 'descricao' antigo
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT, related_name='transacoes')
 
     valor = models.DecimalField(max_digits=15, decimal_places=2)

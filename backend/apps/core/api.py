@@ -150,7 +150,8 @@ def criar_transacao(request, payload: NovaTransacaoSchema):
         user=user,
         carteira=carteira,
         categoria=categoria,
-        valor=payload.data,
+        valor=payload.valor,
+        data=payload.data,
         tipo=payload.tipo,
         pago=payload.pago,
         observacao=payload.observacao
@@ -173,7 +174,7 @@ def listar_carteiras_combo(request):
     user = request.user if request.user.is_authenticated else User.objects.first()
     return Carteira.objects.filter(user=user)
 
-@api.get("combos/categorias", response=List[ItemSelecao])
+@api.get("/combos/categorias", response=List[ItemSelecao])
 def listar_categorias_combo(request):
     from django.contrib.auth.models import User
     user = request.user if request.user.is_authenticated else User.objects.first()

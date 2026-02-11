@@ -35,6 +35,13 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
+
+        if (!form.carteira_id || !form.categoria_id) {
+            alert("Por favor, selecione uma carteira e uma categoria.")
+                setLoading(false)
+                return
+        }
+
         try {
             const baseUrl = import.meta.env.VITE_API_URL
             const res = await fetch(`${baseUrl}/transacoes`, {
@@ -42,14 +49,16 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...form,
-                    valor: parseFloat(form.valor), // Garante que é número
+                    valor: parseFloat(form.valor),
+                    carteira_id: parseInt(form.carteira_id),
+                    categoria_id: parseInt(form.categoria_id),
                     pago: true
                 })
             })
 
             if (res.ok) {
-                aoSalvar() // Avisa o pai que salvou
-                aoFechar() // Fecha o modal
+                aoSalvar()
+                aoFechar()
             } else {
                 alert("Erro ao salvar! Verifique os campos.")
             }
