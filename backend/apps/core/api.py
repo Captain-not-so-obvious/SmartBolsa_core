@@ -52,6 +52,17 @@ class ItemSelecao(Schema):
     id: int
     nome: str
 
+class CategoriaSchema(Schema):
+    id: int
+    nome: str
+    tipo: str
+    icone: Optional[str] = None
+
+class NovaCategoriaSchema(Schema):
+    nome: str
+    tipo: str
+    icone: Optional[str] = None
+
 # --- ENDPOINTS ---
 
 @api.get("/dashboard/resumo", response=DashboardResumo)
@@ -217,3 +228,32 @@ def atualizar_transacao(request, transacao_id: int, payload: NovaTransacaoSchema
         "categoria_id": transacao.categoria.id,
         "observacao": transacao.observacao
     }
+
+@api.get("/categorias", response=List[CategoriaSchema])
+def listar_categorias(request):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    return Categoria.objects.filter(user=user).order_by('nome')
+
+@api.post("/categorias", response={201: CategoriaSchema})
+def criar_categoria(request, payload: NovaCategoriaSchema):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    nova = Categoria.objects.create(
+        user=user,
+        nome=payload.nome,
+        tipo=payload.tipo,
+        icone=payload.icone
+    )
+    return 201, nova
+
+@api.delete("/categorias/{cat_id}", response={204: None})
+def deletar_categoria(request, cat_id: int):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    cat = get_object_or_404(Categoria, id=cat_id, user=user)
+    cat.delete()
+
+    return 204, None

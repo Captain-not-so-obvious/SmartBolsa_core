@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import AppLayout from './layouts/AppLayout'
 import Lancamentos from './pages/Lancamentos'
+import Categorias from './pages/Categorias'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/lancamentos" element={<Lancamentos />} />
+          <Route path='/categorias' element={<Categorias />} />
         </Route>
       </Routes>
     </BrowserRouter>

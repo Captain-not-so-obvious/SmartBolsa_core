@@ -12,6 +12,7 @@ const menuItems = [
         submenu: [
             { label: 'Minhas Carteiras', path: '/carteiras' },
             { label: 'Lançamentos', path: '/lancamentos' },
+            { label: 'Categorias', path: '/categorias' },
         ]
     },
     { label: 'Investimentos', path: '/investimentos', icon: PieChart },
