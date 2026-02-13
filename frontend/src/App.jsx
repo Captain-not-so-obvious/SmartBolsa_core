@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import AppLayout from './layouts/AppLayout'
 import Lancamentos from './pages/Lancamentos'
 import Categorias from './pages/Categorias'
+import Carteiras from './pages/Carteiras'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/lancamentos" element={<Lancamentos />} />
           <Route path='/categorias' element={<Categorias />} />
+          <Route path='/carteiras' element={<Carteiras />} />
         </Route>
       </Routes>
     </BrowserRouter>

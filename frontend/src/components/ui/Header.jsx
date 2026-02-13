@@ -11,11 +11,11 @@ const menuItems = [
         icon: Wallet,
         submenu: [
             { label: 'Minhas Carteiras', path: '/carteiras' },
-            { label: 'Lançamentos', path: '/lancamentos' },
-            { label: 'Categorias', path: '/categorias' },
+            { label: 'Meus Lançamentos', path: '/lancamentos' },
+            { label: 'Minhas Categorias', path: '/categorias' },
         ]
     },
-    { label: 'Investimentos', path: '/investimentos', icon: PieChart },
+    { label: 'Meus Investimentos', path: '/investimentos', icon: PieChart },
 ]
 
 export default function Header() {

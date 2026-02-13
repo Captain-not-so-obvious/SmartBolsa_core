@@ -63,6 +63,19 @@ class NovaCategoriaSchema(Schema):
     tipo: str
     icone: Optional[str] = None
 
+class CarteiraSchema(Schema):
+    id: int
+    nome: str
+    saldo_inicial: float
+    descricao: Optional[str] = None
+    cor: str
+
+class NovaCarteiraSchema(Schema):
+    nome: str
+    saldo_inicial: float = 0
+    descricao: Optional[str] = None
+    cor: str = '#0A9396'
+
 # --- ENDPOINTS ---
 
 @api.get("/dashboard/resumo", response=DashboardResumo)
@@ -255,5 +268,51 @@ def deletar_categoria(request, cat_id: int):
 
     cat = get_object_or_404(Categoria, id=cat_id, user=user)
     cat.delete()
+
+    return 204, None
+
+@api.get("/carteiras", response=List[CarteiraSchema])
+def listar_carteiras(request):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+    return Carteira.objects.filter(user=user)
+
+@api.post("/carteiras", response={201: CarteiraSchema})
+def criar_carteira(request, payload: NovaCarteiraSchema):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    nova = Carteira.objects.create(
+        user=user,
+        nome=payload.nome,
+        saldo_inicial=payload.saldo_inicial,
+        descricao=payload.descricao,
+        cor=payload.cor
+    )
+    return 201, nova
+
+@api.put("/carteiras/{carteira_id}", response=CarteiraSchema)
+def atualizar_carteira(request, carteira_id: int, payload: NovaCarteiraSchema):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    carteira = get_object_or_404(Carteira, id=carteira_id, user=user)
+
+    carteira.nome = payload.nome
+    carteira.saldo_inicial = payload.saldo_inicial
+    carteira.descricao = payload.descricao
+    carteira.cor = payload.cor
+    carteira.save()
+
+    return carteira
+
+@api.delete("/carteiras/{carteira_id}", response={204: None})
+def deletar_carteira(request, carteira_id: int):
+    from django.contrib.auth.models import User
+    user = request.user if request.user.is_authenticated else User.objects.first()
+
+    carteira = get_object_or_404(Carteira, id=carteira_id, user=user)
+
+    carteira.delete()
 
     return 204, None
