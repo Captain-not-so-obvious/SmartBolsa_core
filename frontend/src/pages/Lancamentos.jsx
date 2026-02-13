@@ -2,8 +2,9 @@ import { useEffect, useState } from "react"
 import { Plus, Search, ArrowUpCircle, ArrowDownCircle, Trash2, Edit } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import ModalNovaTransacao from "@/components/ModalNovaTransacao"
+import api from '@/services/api'
 
 export default function Lancamentos() {
     const [transacoes, setTransacoes] = useState([])
@@ -27,11 +28,8 @@ export default function Lancamentos() {
 
     const carregarTransacoes = async () => {
         try {
-            const baseUrl = import.meta.env.VITE_API_URL
-            const res = await fetch(`${baseUrl}/transacoes`) 
-            
-            const data = await res.json()
-            setTransacoes(data)
+            const res = await api.get('/transacoes')
+            setTransacoes(res.data)
         } catch (error) {
             console.error("Erro ao buscar:", error)
         } finally {
@@ -47,18 +45,13 @@ export default function Lancamentos() {
     const handleExcluir = async (id) => {
       if (confirm("Tem certeza que deseja excluir esta transação?")) {
         try {
-          const baseUrl = import.meta.env.VITE_API_URL
-          const res = await fetch(`${baseUrl}/transacoes/${id}`, {
-            method: 'DELETE'
-          })
-
-          if (res.ok) {
-            setTransacoes(transacoes.filter(t => t.id !== id))
-          } else {
-            alert("Erro ao excluir.")
-          }
+          await api.delete(`/transacoes/${id}`)
+          
+          setTransacoes(transacoes.filter(t => t.id !== id))
+          
         } catch (error) {
           console.error("Erro:", error)
+          alert("Erro ao excluir.")
         }
       }
     }

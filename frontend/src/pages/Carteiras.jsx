@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Wallet, Trash2, Edit, Save, Plus, Loader2 } from 'lucide-react'
+import { Wallet, Trash2, Edit, Plus, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import api from '@/services/api'
 
 const PALETA_CORES = [
     '#0A9396', '#EE9B00', '#94D2BD', '#BB3E03', '#AE2012', '#005F73', '#6B705C', '#3F37C9'
@@ -26,10 +27,12 @@ export default function Carteiras() {
     }, [])
 
     const carregarCarteiras = async () => {
-        const baseUrl = import.meta.env.VITE_API_URL
-        const res = await fetch(`${baseUrl}/carteiras`)
-        const data = await res.json()
-        setCarteiras(data)
+        try {
+            const res = await api.get('/carteiras')
+            setCarteiras(res.data)
+        } catch (error) {
+            console.error("Erro ao carregar carteiras:", error)
+        }
     }
 
     const resetForm = () => {
@@ -51,26 +54,24 @@ export default function Carteiras() {
         e.preventDefault()
         setLoading(true)
 
+        const payload = {
+            ...form,
+            saldo_inicial: parseFloat(form.saldo_inicial) || 0
+        }
+
         try {
-            const baseUrl = import.meta.env.VITE_API_URL
-            const url = editandoId ? `${baseUrl}/carteiras/${editandoId}` : `${baseUrl}/carteiras`
-            const method = editandoId ? 'PUT' : 'POST'
-
-            const res = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...form,
-                    saldo_inicial: parseFloat(form.saldo_inicial) || 0
-                })
-            })
-
-            if (res.ok) {
-                carregarCarteiras()
-                resetForm()
+            if (editandoId) {
+                await api.put(`/carteiras/${editandoId}`, payload)
+            } else {
+                await api.post('/carteiras', payload)
             }
+
+            carregarCarteiras()
+            resetForm()
+
         } catch (error) {
-            console.error("Erro:", error)
+            console.error("Erro ao salvar:", error)
+            alert("Erro ao salvar carteira.")
         } finally {
             setLoading(false)
         }
@@ -80,11 +81,11 @@ export default function Carteiras() {
         if (!confirm("CUIDADO: Ao excluir esta carteira, TODAS as transações vinculadas a ela serão apagadas permanentemente. Deseja continuar?")) return
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL
-            await fetch(`${baseUrl}/carteiras/${id}`, { method: 'DELETE' })
+            await api.delete(`/carteiras/${id}`)
             setCarteiras(carteiras.filter(c => c.id !== id))
         } catch (error) {
-            console.error("Erro:", error)
+            console.error("Erro ao excluir:", error)
+            alert("Não foi possível excluir a carteira.")
         }
     }
 

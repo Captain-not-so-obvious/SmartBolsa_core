@@ -3,6 +3,7 @@ import { Plus, Trash2, Tag, ArrowUpCircle, ArrowDownCircle, Loader2 } from 'luci
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import api from '@/services/api'
 
 export default function Categorias() {
     const [categorias, setCategorias] = useState([])
@@ -15,10 +16,12 @@ export default function Categorias() {
     }, [])
 
     const carregarCategorias = async () => {
-        const baseUrl = import.meta.env.VITE_API_URL
-        const res = await fetch(`${baseUrl}/categorias`)
-        const data = await res.json()
-        setCategorias(data)
+        try {
+            const res = await api.get('/categorias')
+            setCategorias(res.data)
+        } catch (error) {
+            console.error("Erro ao carregar categorias:", error)
+        }
     }
 
     const handleSalvar = async (e) => {
@@ -27,22 +30,17 @@ export default function Categorias() {
 
         setLoading(true)
         try {
-            const baseUrl = import.meta.env.VITE_API_URL
-            const res = await fetch(`${baseUrl}/categorias`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    nome: novoNome,
-                    tipo: novoTipo
-                })
+            await api.post('/categorias', {
+                nome: novoNome,
+                tipo: novoTipo
             })
 
-            if (res.ok) {
-                setNovoNome('')
-                carregarCategorias()
-            }
+            setNovoNome('')
+            carregarCategorias()
+            
         } catch (error) {
-            console.error("Erro:", error)
+            console.error("Erro ao salvar:", error)
+            alert("Erro ao salvar categoria.")
         } finally {
             setLoading(false)
         }
@@ -52,18 +50,12 @@ export default function Categorias() {
         if (!confirm("Tem certeza? Se houver transações nesta categoria, ela não será excluída.")) return
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL
-            const res = await fetch(`${baseUrl}/categorias/${id}`, {
-                method: 'DELETE'
-            })
-
-            if (res.ok) {
-                setCategorias(categorias.filter(c => c.id !== id))
-            } else {
-                alert("Não foi possível excluir. Verifique se existem lançamentos usando esta categoria.")
-            }
+            await api.delete(`/categorias/${id}`)
+            
+            setCategorias(categorias.filter(c => c.id !== id))
         } catch (error) {
-            console.error("Erro:", error)
+            console.error("Erro ao excluir:", error)
+            alert("Não foi possível excluir. Verifique se existem lançamentos usando esta categoria.")
         }
     }
 

@@ -4,13 +4,14 @@ from django.db.models import Sum
 from datetime import date
 from typing import List, Optional
 
-# IMPORTS IMPORTANTES QUE FALTAVAM
 from apps.financas.models import Carteira, Transacao, Categoria
 
+from apps.core.auth import SupabaseAuth
 api = NinjaAPI(
     title="SmartBolsa API",
     version="1.0.0",
-    description="API Financeira Inteligente"
+    description="API Financeira Inteligente",
+    auth=SupabaseAuth()
 )
 
 # --- SCHEMAS ---
@@ -21,8 +22,8 @@ class DashboardResumo(Schema):
     despesas_mes: float
 
 class GraficoItem(Schema):
-    name: str   # Mudei de 'nome' para 'name' (padrão Recharts)
-    value: float # Mudei de 'valor' para 'value'
+    name: str
+    value: float
     color: str
 
 class DashboardGraficos(Schema):
@@ -78,13 +79,14 @@ class NovaCarteiraSchema(Schema):
 
 # --- ENDPOINTS ---
 
+@api.get("/hello", auth=None)
+def hello(request):
+    return {"message": "Estamos online, conectados e seguros!"}
+
 @api.get("/dashboard/resumo", response=DashboardResumo)
 def get_dashboard_resumo(request):
-    from django.contrib.auth.models import User
-    # CORREÇÃO: is_authenticated (tinha um typo)
-    user = request.user if request.user.is_authenticated else User.objects.first()
+    user = request.auth # <--- O usuário vem do Token do Supabase
 
-    # CORREÇÃO: Django usa dois underlines (valor__sum)
     total_receitas = Transacao.objects.filter(user=user, tipo='RECEITA').aggregate(Sum('valor'))['valor__sum'] or 0
     total_despesas = Transacao.objects.filter(user=user, tipo='DESPESA').aggregate(Sum('valor'))['valor__sum'] or 0
     
@@ -92,7 +94,7 @@ def get_dashboard_resumo(request):
     
     saldo_atual = float(saldo_inicial_carteiras) + float(total_receitas) - float(total_despesas)
 
-    # 2. Resumo do Mês
+    # Resumo do Mês
     hoje = date.today()
     transacoes_mes = Transacao.objects.filter(
         user=user, 
@@ -111,10 +113,8 @@ def get_dashboard_resumo(request):
 
 @api.get("/dashboard/graficos", response=DashboardGraficos)
 def get_dashboard_graficos(request):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
+    user = request.auth
 
-    # Paleta de cores SmartBolsa
     CORES = ['#0A9396', '#EE9B00', '#94D2BD', '#BB3E03', '#E9D8A6', '#AE2012', '#005F73', '#CA6702']
 
     def agrupar_por_categoria(tipo_transacao):
@@ -137,15 +137,9 @@ def get_dashboard_graficos(request):
         "despesas_por_categoria": agrupar_por_categoria('DESPESA')
     }
 
-@api.get("/hello")
-def hello(request):
-    return {"message": "Estamos online e conectados!"}
-
 @api.get("/transacoes", response=List[TransacaoSchema])
 def listar_transacoes(request):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
+    user = request.auth
     qs = Transacao.objects.filter(user=user).select_related('categoria', 'carteira').order_by('-data', '-criado_em')
 
     resultados = []
@@ -164,8 +158,7 @@ def listar_transacoes(request):
 
 @api.post("/transacoes", response={201: TransacaoSchema})
 def criar_transacao(request, payload: NovaTransacaoSchema):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
+    user = request.auth
 
     carteira = get_object_or_404(Carteira, id=payload.carteira_id, user=user)
     categoria = get_object_or_404(Categoria, id=payload.categoria_id, user=user)
@@ -192,33 +185,10 @@ def criar_transacao(request, payload: NovaTransacaoSchema):
         "observacao": nova.observacao
     }
 
-@api.get("/combos/carteiras", response=List[ItemSelecao])
-def listar_carteiras_combo(request):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-    return Carteira.objects.filter(user=user)
-
-@api.get("/combos/categorias", response=List[ItemSelecao])
-def listar_categorias_combo(request):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-    return Categoria.objects.filter(user=user)
-
-@api.delete("/transacoes/{transacao_id}", response={204: None})
-def deletar_transacao(request, transacao_id: int):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
-    transacao = get_object_or_404(Transacao, id=transacao_id, user=user)
-
-    transacao.delete()
-
-    return 204, None
-
 @api.put("/transacoes/{transacao_id}", response=TransacaoSchema)
 def atualizar_transacao(request, transacao_id: int, payload: NovaTransacaoSchema):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
+    user = request.auth
+    
     transacao = get_object_or_404(Transacao, id=transacao_id, user=user)
     carteira = get_object_or_404(Carteira, id=payload.carteira_id, user=user)
     categoria = get_object_or_404(Categoria, id=payload.categoria_id, user=user)
@@ -242,17 +212,35 @@ def atualizar_transacao(request, transacao_id: int, payload: NovaTransacaoSchema
         "observacao": transacao.observacao
     }
 
+@api.delete("/transacoes/{transacao_id}", response={204: None})
+def deletar_transacao(request, transacao_id: int):
+    user = request.auth
+    transacao = get_object_or_404(Transacao, id=transacao_id, user=user)
+    transacao.delete()
+    return 204, None
+
+# --- COMBOS ---
+
+@api.get("/combos/carteiras", response=List[ItemSelecao])
+def listar_carteiras_combo(request):
+    user = request.auth
+    return Carteira.objects.filter(user=user)
+
+@api.get("/combos/categorias", response=List[ItemSelecao])
+def listar_categorias_combo(request):
+    user = request.auth
+    return Categoria.objects.filter(user=user)
+
+# --- CATEGORIAS ---
+
 @api.get("/categorias", response=List[CategoriaSchema])
 def listar_categorias(request):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
+    user = request.auth
     return Categoria.objects.filter(user=user).order_by('nome')
 
 @api.post("/categorias", response={201: CategoriaSchema})
 def criar_categoria(request, payload: NovaCategoriaSchema):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
+    user = request.auth
     nova = Categoria.objects.create(
         user=user,
         nome=payload.nome,
@@ -263,25 +251,21 @@ def criar_categoria(request, payload: NovaCategoriaSchema):
 
 @api.delete("/categorias/{cat_id}", response={204: None})
 def deletar_categoria(request, cat_id: int):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
+    user = request.auth
     cat = get_object_or_404(Categoria, id=cat_id, user=user)
     cat.delete()
-
     return 204, None
+
+# --- CARTEIRAS ---
 
 @api.get("/carteiras", response=List[CarteiraSchema])
 def listar_carteiras(request):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
+    user = request.auth
     return Carteira.objects.filter(user=user)
 
 @api.post("/carteiras", response={201: CarteiraSchema})
 def criar_carteira(request, payload: NovaCarteiraSchema):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
+    user = request.auth
     nova = Carteira.objects.create(
         user=user,
         nome=payload.nome,
@@ -293,9 +277,7 @@ def criar_carteira(request, payload: NovaCarteiraSchema):
 
 @api.put("/carteiras/{carteira_id}", response=CarteiraSchema)
 def atualizar_carteira(request, carteira_id: int, payload: NovaCarteiraSchema):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
+    user = request.auth
     carteira = get_object_or_404(Carteira, id=carteira_id, user=user)
 
     carteira.nome = payload.nome
@@ -308,11 +290,7 @@ def atualizar_carteira(request, carteira_id: int, payload: NovaCarteiraSchema):
 
 @api.delete("/carteiras/{carteira_id}", response={204: None})
 def deletar_carteira(request, carteira_id: int):
-    from django.contrib.auth.models import User
-    user = request.user if request.user.is_authenticated else User.objects.first()
-
+    user = request.auth
     carteira = get_object_or_404(Carteira, id=carteira_id, user=user)
-
     carteira.delete()
-
     return 204, None

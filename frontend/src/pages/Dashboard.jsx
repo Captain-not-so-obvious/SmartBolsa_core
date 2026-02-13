@@ -3,6 +3,7 @@ import { supabase } from '@/services/supabase'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import { Wallet, ArrowUpCircle, ArrowDownCircle, Loader2 } from 'lucide-react'
+import api from '@/services/api'
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
@@ -27,16 +28,12 @@ export default function Dashboard() {
 
         // 2. Busca Resumo (Saldo, Receitas, Despesas)
         // Nota: No futuro usaremos token JWT, por enquanto o backend pega o primeiro user
-        const resResumo = await fetch('http://127.0.0.1:8000/api/dashboard/resumo')
-        const dadosResumo = await resResumo.json()
-        setResumo(dadosResumo)
+        const resResumo = await api.get('/dashboard/resumo')
+        setResumo(resResumo.data)
 
         // 3. Busca Dados dos Gráficos
-        const baseUrl = import.meta.env.VITE_API_URL
-        const resGraficos = await fetch(`${baseUrl}/dashboard/graficos`)
-        const dadosGraficos = await resGraficos.json()
-        setGraficos(dadosGraficos)
-
+        const resGraficos = await api.get('/dashboard/graficos')
+        setGraficos(resGraficos.data)
       } catch (error) {
         console.error("Erro ao buscar dados:", error)
       } finally {
@@ -128,10 +125,10 @@ export default function Dashboard() {
       </div>
 
       {/* 3. GRÁFICOS (DADOS REAIS) */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pb-5'>
         
         {/* Gráfico de Receitas */}
-        <Card className="glass border-brand-teal/20">
+        <Card className="glass border-brand-teal/20 pb-10">
           <CardHeader>
             <CardTitle className="text-brand-teal">Origem das Receitas</CardTitle>
           </CardHeader>
@@ -166,7 +163,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Gráfico de Despesas */}
-        <Card className="glass border-brand-ruby/20">
+        <Card className="glass border-brand-ruby/20 pb-10">
           <CardHeader>
             <CardTitle className="text-brand-ruby">Categorias de Despesas</CardTitle>
           </CardHeader>

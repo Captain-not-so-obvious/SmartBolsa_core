@@ -16,11 +16,20 @@ class SupabaseAuth(HttpBearer):
             email = payload.get('email')
 
             if email:
-                user, created = User.objects.get_or_create(
-                    username=email,
-                    defaults={'email': email}
-                )
-                return user
+                # Tenta achar ALGUÉM com esse e-mail (seja admin ou user comum)
+                try:
+                    user = User.objects.get(email=email)
+                    return user
+                except User.DoesNotExist:
+                    user = User.objects.create_user(
+                        username=email,
+                        email=email
+                    )
+                    return user
+                except User.MultipleObjectsReturned:
+                    return User.objects.filter(email=email).first()
+            
+            return None
             
         except Exception as e:
             return None

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Save, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import api from '@/services/api'
 
 export default function ModalNovaTransacao({ aoFechar, aoSalvar, transacaoParaEditar }) {
     const [loading, setLoading] = useState(false)
@@ -34,13 +35,16 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar, transacaoParaEd
     // Carrega as listas para o Select
     useEffect(() => {
         async function carregarDados() {
-            const baseUrl = import.meta.env.VITE_API_URL
-            const [resCart, resCat] = await Promise.all([
-                fetch(`${baseUrl}/combos/carteiras`),
-                fetch(`${baseUrl}/combos/categorias`)
-            ])
-            setCarteiras(await resCart.json())
-            setCategorias(await resCat.json())
+            try {
+                const [resCart, resCat] = await Promise.all([
+                    api.get('/combos/carteiras'),
+                    api.get('/combos/categorias')
+                ])
+                setCarteiras(resCart.data)
+                setCategorias(resCat.data)
+            } catch (error) {
+                console.error("Erro ao carregar combos:", error)
+            }
         }
         carregarDados()
     }, [])
@@ -51,43 +55,41 @@ export default function ModalNovaTransacao({ aoFechar, aoSalvar, transacaoParaEd
 
         if (!form.carteira_id || !form.categoria_id) {
             alert("Por favor, selecione uma carteira e uma categoria.")
-                setLoading(false)
-                return
+            setLoading(false)
+            return
+        }
+
+        const payload = {
+            ...form,
+            valor: parseFloat(form.valor),
+            carteira_id: parseInt(form.carteira_id),
+            categoria_id: parseInt(form.categoria_id),
+            pago: true
         }
 
         try {
-            const baseUrl = import.meta.env.VITE_API_URL
-            const url = transacaoParaEditar
-                ? `${baseUrl}/transacoes/${transacaoParaEditar.id}`
-                : `${baseUrl}/transacoes`
-
-            const method = transacaoParaEditar?.id ? 'PUT' : 'POST'
-
-            const res = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...form,
-                    valor: parseFloat(form.valor),
-                    carteira_id: parseInt(form.carteira_id),
-                    categoria_id: parseInt(form.categoria_id),
-                    pago: true
-                })
-            })
-
-            if (res.ok) {
-                aoSalvar()
-                aoFechar()
+            // 3. POST/PUT Simplificados
+            if (transacaoParaEditar?.id) {
+                // Editando (PUT)
+                await api.put(`/transacoes/${transacaoParaEditar.id}`, payload)
             } else {
-                alert("Erro ao salvar! Verifique os campos.")
+                // Criando (POST)
+                await api.post('/transacoes', payload)
             }
+
+            // Sucesso!
+            aoSalvar()
+            aoFechar()
+
         } catch (error) {
             console.error(error)
+            alert("Erro ao salvar! Verifique os campos.")
         } finally {
             setLoading(false)
         }
     }
 
+    
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
             <div className="w-full max-w-md bg-brand-dark border border-brand-teal/30 rounded-xl shadow-2xl p-6 relative">
