@@ -77,7 +77,24 @@ class NovaCarteiraSchema(Schema):
     descricao: Optional[str] = None
     cor: str = '#0A9396'
 
+class UserSchema(Schema):
+    id: int
+    username: str
+    email: str
+    plano: str
+
 # --- ENDPOINTS ---
+
+@api.get("/me", response=UserSchema)
+def me(request):
+    user = request.auth
+
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "plano": user.profile.plano
+    }
 
 @api.get("/hello", auth=None)
 def hello(request):

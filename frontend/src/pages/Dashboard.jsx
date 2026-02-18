@@ -4,14 +4,15 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
 import { Wallet, ArrowUpCircle, ArrowDownCircle, Loader2 } from 'lucide-react'
 import api from '@/services/api'
+import AdBanner from '@/components/AdBanner'
 
 export default function Dashboard() {
   const [user, setUser] = useState(null)
-  const [resumo, setResumo] = useState(null) // Estado para Cards
-  const [graficos, setGraficos] = useState(null) // Estado para Gráficos
-  const [loading, setLoading] = useState(true) // Estado de Carregamento
+  const [isPremium, setIsPremium] = useState(false)
+  const [resumo, setResumo] = useState(null)
+  const [graficos, setGraficos] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // Formatador de Dinheiro (R$ 1.000,00)
   const formatarMoeda = (valor) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -22,18 +23,19 @@ export default function Dashboard() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        // 1. Pega usuário logado
-        const { data: { user } } = await supabase.auth.getUser()
-        setUser(user)
+        // 1. Busca dados do usuário e perfil (para saber se é Premium)
+        const resMe = await api.get('/me')
+        setUser(resMe.data)
+        setIsPremium(resMe.data.plano === 'PREMIUM')
 
-        // 2. Busca Resumo (Saldo, Receitas, Despesas)
-        // Nota: No futuro usaremos token JWT, por enquanto o backend pega o primeiro user
+        // 2. Busca Resumo
         const resResumo = await api.get('/dashboard/resumo')
         setResumo(resResumo.data)
 
-        // 3. Busca Dados dos Gráficos
+        // 3. Busca Gráficos
         const resGraficos = await api.get('/dashboard/graficos')
         setGraficos(resGraficos.data)
+
       } catch (error) {
         console.error("Erro ao buscar dados:", error)
       } finally {
@@ -44,7 +46,6 @@ export default function Dashboard() {
     carregarDados()
   }, [])
 
-  // Componente Tooltip Customizado
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
@@ -68,8 +69,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className='space-y-6 animate-in fade-in duration-700'>
+    <div className='space-y-6 animate-in fade-in duration-700 pb-20'>
       
+      {/* --- PROPAGANDA NO TOPO (Só aparece se não for Premium) --- */}
+      <AdBanner isPremium={isPremium} slotId="topo-dashboard" />
+
       {/* 1. CABEÇALHO */}
       <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
         <div>
@@ -82,9 +86,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 2. CARDS DE RESUMO (DADOS REAIS) */}
+      {/* 2. CARDS DE RESUMO */}
       <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-        {/* Card Saldo */}
         <Card className="glass border-brand-teal/30">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-brand-mint">Saldo Atual</CardTitle>
@@ -97,7 +100,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Card Receitas */}
         <Card className="glass border-brand-teal/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-brand-mint">Receitas (Mês)</CardTitle>
@@ -110,7 +112,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Card Despesas */}
         <Card className="glass border-brand-wine/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-brand-mint">Despesas (Mês)</CardTitle>
@@ -124,15 +125,18 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* 3. GRÁFICOS (DADOS REAIS) */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pb-5'>
+      {/* --- PROPAGANDA NO MEIO (Entre cards e gráficos) --- */}
+      <AdBanner isPremium={isPremium} slotId="meio-dashboard" />
+
+      {/* 3. GRÁFICOS */}
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
         
         {/* Gráfico de Receitas */}
         <Card className="glass border-brand-teal/20 pb-10">
           <CardHeader>
             <CardTitle className="text-brand-teal">Origem das Receitas</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[400px]">
             {graficos?.receitas_por_categoria?.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -140,8 +144,8 @@ export default function Dashboard() {
                     data={graficos.receitas_por_categoria}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={80}
+                    outerRadius={100}
                     paddingAngle={5}
                     dataKey="value"
                     stroke="none"
@@ -151,7 +155,12 @@ export default function Dashboard() {
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: '#E9D8A6' }} />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={48}
+                    iconType="circle" 
+                    wrapperStyle={{ color: '#E9D8A6', paddingTop: '20px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -167,7 +176,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="text-brand-ruby">Categorias de Despesas</CardTitle>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[400px]">
              {graficos?.despesas_por_categoria?.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -175,8 +184,8 @@ export default function Dashboard() {
                       data={graficos.despesas_por_categoria}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={80}
+                      outerRadius={100}
                       paddingAngle={5}
                       dataKey="value"
                       stroke="none"
@@ -186,7 +195,12 @@ export default function Dashboard() {
                       ))}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: '#E9D8A6' }} />
+                    <Legend 
+                        verticalAlign="bottom" 
+                        height={48} 
+                        iconType="circle" 
+                        wrapperStyle={{ color: '#E9D8A6', paddingTop: '20px' }} 
+                    />
                   </PieChart>
                 </ResponsiveContainer>
              ) : (
