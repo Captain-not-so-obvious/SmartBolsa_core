@@ -1,134 +1,156 @@
-# SmartBolsa: Seu Gestor Financeiro e de Investimentos Completo
+# 💰 SmartBolsa (Open Core)
 
-## Visão Geral do Projeto
+> **SaaS de Gestão Financeira Pessoal com Arquitetura Freemium.**
 
-O **SmartBolsa** é uma plataforma inovadora de Gestão Financeira Pessoal e de Investimentos, projetada para auxiliar usuários a controlar suas finanças domésticas e otimizar seus investimentos em um único lugar. Com a missão de capacitar indivíduos a entender e gerenciar seu patrimônio, o SmartBolsa oferece funcionalidades detalhadas de acompanhamento de despesas, receitas, e uma poderosa análise de carteira de investimentos com integração de dados do mercado financeiro. O sistema será disponibilizado como um **SAAS (Software as a Service)**, com aplicativos dedicados para iOS e Android.
+## 📋 Sobre o Projeto
 
-## Modelo de Negócio (Monetização SAAS)
+O **SmartBolsa** é uma plataforma financeira projetada para ajudar usuários a organizarem suas finanças domésticas. Este repositório contém o **Core (Núcleo)** do sistema, focado na gestão de fluxo de caixa (receitas e despesas), gestão de múltiplas carteiras e visualização de dados.
 
-O SmartBolsa opera com um modelo de monetização híbrido:
+O projeto foi construído seguindo o modelo **Open Core**, onde as funcionalidades essenciais de gestão financeira são abertas, servindo como base para a versão **SmartBolsa Pro** (repositório privado), que inclui módulos avançados de Investimentos, Robôs de Cotação e Inteligência Artificial.
 
-* **Usuários Free:** Terão acesso às funcionalidades básicas com a exibição de **anúncios**. Haverá um limite de operações (transações financeiras e de investimento) para usuários gratuitos.
-    * **Regra de Anúncios:** Um anúncio será exibido a cada transação cadastrada no módulo de investimentos. No módulo de despesas e receitas, um anúncio será exibido a cada três transações cadastradas.
-* **Usuários Premium:** Através de uma **assinatura mensal**, usuários Premium desfrutarão de uma experiência sem anúncios, limites de operações ilimitados e acesso a relatórios e análises exclusivas.
+### 🎯 Funcionalidades Principais (Core)
 
-## Funcionalidades Principais
+* **Dashboard Interativo:** Visão geral de saldo, receitas vs. despesas e gráficos de pizza (Recharts).
+* **Gestão de Transações:** CRUD completo de lançamentos financeiros com categorização.
+* **Múltiplas Carteiras:** Controle de contas bancárias, dinheiro físico e outros fundos.
+* **Autenticação Moderna:** Login seguro via **Supabase Auth** (Google e E-mail/Senha).
+* **Modelo Freemium:**
+* **Free:** Visualização de anúncios (Google AdSense) integrados ao layout.
+* **Premium:** Experiência sem anúncios e desbloqueio visual de features futuras.
 
-### Gestão Financeira Doméstica
 
-1.  **Categorias de Despesas e Receitas:**
-    * Sistema robusto de categorias padrão para ganhos e despesas.
-    * **Personalização:** Usuários poderão adicionar novas categorias, editar ou excluir as predefinidas para adequar ao seu estilo de vida financeiro.
-2.  **Sistema de Transações:**
-    * **CRUD Completo:** Adicionar, editar e remover despesas e receitas de forma intuitiva.
-    * **Cálculo de Saldo:** O sistema calculará e exibirá o saldo total do usuário com base nas transações registradas.
-
-### Gestão de Investimentos
-
-1.  **CRUD de Investimentos:**
-    * Permitir ao usuário adicionar, remover e editar ações/ativos de sua carteira.
-    * **Atualização Automática de Custo Médio e Dividend Yield:** Ao adicionar uma ação já existente na carteira, o sistema recalculará automaticamente o custo médio do ativo e o Dividend Yield total da carteira.
-2.  **Integração com Yahoo Finance:**
-    * **Preços Atuais:** Obtenção de cotações em tempo real.
-    * **Variação Diária:** Acompanhamento da performance diária dos ativos.
-3.  **Relatórios de Rentabilidade:**
-    * **Relatório Padrão:** Ao acessar o módulo de investimentos, será exibida a rentabilidade da carteira para os últimos **12 meses**.
-    * **Relatórios Personalizados (Premium):** Usuários Premium poderão gerar relatórios de rentabilidade baseados em períodos estipulados por eles.
-    * **Comparativos de Performance:** O sistema comparará a performance da carteira do usuário contra índices de mercado como **IPCA, IGPM, Ibovespa e S&P 500**.
-4.  **Questionário de Investimento:**
-    * No primeiro acesso ao módulo de investimentos, um questionário será apresentado.
-    * Se o usuário confirmar que investe, poderá inserir o **custo médio** e a **quantidade de ações** que possui para inicializar o cálculo de rentabilidade da carteira.
-
-### Relatórios e Análises (Recursos Premium)
-
-1.  **Balanço Mensal:**
-    * Relatório detalhado, frequentemente acompanhado de **gráficos**, mostrando as principais despesas e receitas, e sua representatividade percentual no orçamento total.
-2.  **Gráfico de Despesas por Categoria:**
-    * Visualização clara das despesas por categoria, com opção de **ordenação por valor**.
-    * **Comparativo Mensal:** Análise de despesas e receitas mês a mês.
-3.  **Análise de Tendências (Futuro com ML):**
-    * Aspiramos a um sistema de Machine Learning que aprenderá os padrões de gastos do usuário.
-    * **Previsão de Gastos:** O aplicativo poderá ajudar a identificar onde o usuário está excedendo nos gastos e onde está performando bem.
-    * **Evolução do Balanço:** Relatório sobre a evolução do patrimônio e a gestão de despesas.
-    * **Comparativo Anual:** Comparação do desempenho financeiro ano a ano (para usuários com mais de dois anos de dados).
-
-## Tecnologias Utilizadas
-
-### Backend
-* **Linguagem/Framework:** Node.js com Express.js
-* **Banco de Dados:** PostgreSQL (principal)
-* **Cache:** Redis
-* **Autenticação:** JWT (implementação customizada com `jsonwebtoken` e `bcrypt.js`)
-* **Integração API Financeira:** Yahoo Finance
-
-### Frontend
-* **Mobile (iOS & Android):** React Native
-* **Web (SAAS Platform):** React.js
-
-### Infraestrutura & Deploy
-* **Provedor de Nuvem:** Amazon Web Services (AWS)
-* **Contêineres:** Docker
-* **CI/CD:** GitHub Actions
-
-## Como Rodar o Projeto (Desenvolvimento)
-
-### Pré-requisitos
-* Node.js (versão LTS recomendada)
-* npm ou Yarn
-* PostgreSQL instalado e rodando
-* pgAdmin (recomendado para gerenciamento do BD)
-* Expo Go app no seu dispositivo móvel (para testes do frontend)
-
-### Configuração do Backend
-
-1.  Navegue até a pasta `backend`:
-    ```bash
-    cd SmartBolsa/backend
-    ```
-2.  Inicialize o projeto Node.js e instale as dependências:
-    ```bash
-    npm init -y
-    npm install express pg dotenv jsonwebtoken bcryptjs # (Futuramente outras libs)
-    ```
-3.  Crie um arquivo `.env` na raiz da pasta `backend` com suas credenciais do PostgreSQL:
-    ```dotenv
-    DB_USER=postgres
-    DB_HOST=localhost
-    DB_DATABASE=smartbolsa_db
-    DB_PASSWORD=sua_senha_do_postgres
-    DB_PORT=5432
-    ```
-    **ATENÇÃO:** Substitua `sua_senha_do_postgres` pela sua senha real. Este arquivo não deve ser versionado no Git!
-4.  Crie a pasta `config` e o arquivo `db.js` (conforme instruções anteriores para conexão com PostgreSQL).
-5.  Para iniciar o servidor:
-    ```bash
-    node server.js
-    ```
-    O servidor estará acessível em `http://localhost:3000`.
-
-### Configuração do Frontend
-
-1.  Navegue até a pasta `frontend`:
-    ```bash
-    cd SmartBolsa/frontend
-    ```
-2.  Crie o projeto React Native (se ainda não o fez):
-    ```bash
-    npx create-expo-app . --template
-    # Escolha 'Default - includes tools recommended for most app developers'
-    ```
-3.  Para iniciar o aplicativo:
-    ```bash
-    npx expo start
-    ```
-    Escaneie o QR Code com o aplicativo Expo Go no seu celular ou use um emulador.
-
-## Contribuição
-
-Interessado em contribuir para o SmartBolsa? Entre em contato!
-
-## Licença
-
-[A ser definida]
+* **Arquitetura Modular:** Backend Django separado em apps (`core`, `financas`) para fácil escalabilidade.
 
 ---
+
+## 🚀 Tecnologias Utilizadas
+
+O projeto utiliza uma stack moderna, focada em performance e DX (Developer Experience):
+
+### Backend (API)
+
+* **Python 3.12+**
+* **Django 5 + Django Ninja:** Para criação de APIs rápidas e tipadas (padrão OpenAPI).
+* **PostgreSQL (via Supabase):** Banco de dados relacional robusto.
+* **Supabase Auth:** Gerenciamento de usuários e JWT.
+* **Gunicorn:** Servidor de aplicação WSGI.
+
+### Frontend (SPA)
+
+* **React.js + Vite:** Build ultra-rápido.
+* **TailwindCSS + ShadCN/ui:** Design system moderno, responsivo e acessível (Dark Mode nativo).
+* **Axios:** Cliente HTTP com interceptors para injeção automática de Token.
+* **Recharts:** Biblioteca de gráficos para visualização de dados.
+* **Lucide React:** Ícones leves e consistentes.
+
+---
+
+## 📸 Screenshots
+
+*Em breve
+
+---
+
+## 🔧 Como Rodar Localmente
+
+Siga os passos abaixo para ter o ambiente de desenvolvimento rodando na sua máquina.
+
+### Pré-requisitos
+
+* Python 3.10+ e Node.js 18+ instalados.
+* Conta no [Supabase](https://supabase.com/) (para Banco de Dados e Auth).
+
+### 1. Configuração do Backend
+
+```bash
+# Clone o repositório
+git clone https://github.com/SEU_USUARIO/smartbolsa-core.git
+cd smartbolsa-core/backend
+
+# Crie e ative o ambiente virtual
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Instale as dependências
+pip install -r requirements.txt
+
+# Configure as variáveis de ambiente
+# Crie um arquivo .env na pasta backend/ e adicione:
+# DATABASE_URL=sua_url_do_transaction_pooler_supabase
+# SUPABASE_JWT_SECRET=seu_segredo_jwt_do_supabase
+
+# Execute as migrações
+python manage.py migrate
+
+# Inicie o servidor
+python manage.py runserver
+
+```
+
+*O Backend estará rodando em `http://localhost:8000/api/docs` (Documentação Swagger Automática).*
+
+### 2. Configuração do Frontend
+
+```bash
+# Em outro terminal, navegue até a pasta frontend
+cd ../frontend
+
+# Instale as dependências
+npm install
+
+# Configure as variáveis de ambiente
+# Crie um arquivo .env na pasta frontend/ e adicione:
+# VITE_SUPABASE_URL=sua_url_do_projeto_supabase
+# VITE_SUPABASE_ANON_KEY=sua_chave_publica_anonima
+# VITE_API_URL=http://127.0.0.1:8000/api
+
+# Inicie o servidor de desenvolvimento
+npm run dev
+
+```
+
+*O Frontend estará rodando em `http://localhost:5173`.*
+
+---
+
+## 🏗️ Arquitetura do Banco de Dados
+
+O projeto utiliza **PostgreSQL**. Principais tabelas do Core:
+
+* **auth.users (Supabase):** Gerencia credenciais e sessões.
+* **core_userprofile:** Extensão do usuário para definir plano (FREE/PREMIUM).
+* **financas_carteira:** Contas (Nubank, Cofre, etc.).
+* **financas_categoria:** Classificação (Alimentação, Salário, etc.).
+* **financas_transacao:** O registro financeiro (valor, data, tipo).
+
+---
+
+## 🔮 Próximos Passos (Roadmap)
+
+Este repositório foca na gestão financeira. O ecossistema SmartBolsa está evoluindo para incluir:
+
+* [ ] **SmartBolsa Pro (Privado):**
+* Módulo de Investimentos (Ações, FIIs, Stocks).
+* Integração com Redis e Celery para tasks assíncronas.
+* Atualização automática de cotações via yfinance.
+* Cálculo automático de Preço Médio e Rentabilidade.
+
+
+* [ ] **Mobile:** Versão PWA ou React Native consumindo a mesma API.
+
+---
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir Issues ou enviar Pull Requests para melhorias no Core.
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](https://www.google.com/search?q=LICENSE) para mais detalhes.
+
+---
+
+**Desenvolvido por [Seu Nome]** 🚀
